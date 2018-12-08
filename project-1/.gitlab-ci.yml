@@ -1,0 +1,87 @@
+image: adnrv/opencv
+
+# Script variables
+variables:
+    INPUT_DIR:  "input"
+    OUTPUT_DIR: "output"
+
+stages:
+  - prepare
+  - test
+  - report
+
+# Preparation stage
+prepare:
+  stage: prepare
+  script:
+    - make
+  artifacts:
+    paths:
+      - ${INPUT_DIR}/boy.jpg
+      - ${INPUT_DIR}/bug.jpg
+      - ${INPUT_DIR}/church.jpg
+      - ${INPUT_DIR}/dog.jpg
+      - ${INPUT_DIR}/fish.jpg
+      - ${INPUT_DIR}/lake.jpg
+      - ${INPUT_DIR}/lena.jpg
+      - ${INPUT_DIR}/peppers.png
+      - ${INPUT_DIR}/rogue.jpg
+      - ${OUTPUT_DIR}
+    
+# Stage to test convolutions
+convolutions-test:
+  stage: test
+  script:
+    - make convolution
+  artifacts:
+    paths:
+      - ${OUTPUT_DIR}/convolution/*
+  dependencies:
+    - prepare
+
+# Stage to test colour reduction
+colour-reduction-test:
+  stage: test
+  script:
+    - make color
+  artifacts:
+    paths:
+      - ${OUTPUT_DIR}/color/*
+  dependencies:
+    - prepare
+
+# Stage to test edge detection
+edge-test:
+  stage: test
+  script:
+    - make edge
+  artifacts:
+    paths:
+      - ${OUTPUT_DIR}/edge/*
+  dependencies:
+    - prepare
+
+# Run the entire pipeline to cartoonize all input images
+cartoonization:
+  stage: test
+  script:
+    - make cartoonize
+  artifacts:
+    paths:
+      - ${OUTPUT_DIR}/cartoonize/*
+  dependencies:
+    - prepare
+
+# Stage to produce the report
+report:
+  image: adnrv/texlive:full
+  stage: report
+  script:
+    - cd report
+    - latexmk -pdf -pdflatex="pdflatex --shell-escape %O %S" report
+    # move the file to the root folder
+    - mv report.pdf ../
+    - rm -f *.out *.aux *.alg *.acr *.dvi *.gls *.log *.bbl *.blg *.ntn *.not *.lof *.lot *.toc *.loa *.lsg *.nlo *.nls *.ilg *.ind *.ist *.glg *.glo *.xdy *.acn *.idx *.loq *~
+  artifacts:
+    paths:
+      - report.pdf

@@ -1,0 +1,34 @@
+image: adnrv/opencv
+
+# Script variables
+variables:
+    INPUT_DIR:  "input"
+    OUTPUT_DIR: "output"
+
+stages:
+  - report
+  - test
+
+# Stage to produce the report
+report:
+  image: adnrv/texlive:full
+  stage: report
+  script:
+    - cd report
+    - latexmk -pdf -pdflatex="pdflatex --shell-escape %O %S" report
+    # move the file to the root folder
+    - mv report.pdf ../
+    - rm -f *.out *.aux *.alg *.acr *.dvi *.gls *.log *.bbl *.blg *.ntn *.not *.lof *.lot *.toc *.loa *.lsg *.nlo *.nls *.ilg *.ind *.ist *.glg *.glo *.xdy *.acn *.idx *.loq *~
+  artifacts:
+    paths:
+      - report.pdf
+
+# Stage to test pipeline
+test:
+  stage: test
+  script:
+    - make run
+    - make features
+  artifacts:
+    paths:
+      - ${OUTPUT_DIR}/*

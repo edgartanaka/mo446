@@ -1,0 +1,64 @@
+image: adnrv/opencv
+
+# Script variables
+variables:
+    INPUT_DIR:  "input"
+    OUTPUT_DIR: "output"
+
+stages:
+  - prepare
+  - test
+  - report
+
+# Preparation stage
+prepare:
+  stage: prepare
+  script:
+    - make clean prepare
+  artifacts:
+    paths:
+      - ${INPUT_DIR}/*
+    
+# Stage to test pipeline
+test:
+  stage: test
+  script:
+    - pip install sklearn
+    - make frame
+    - make run
+    - make sift-demo
+  artifacts:
+    paths:
+      - ${OUTPUT_DIR}/scale.avi
+      - ${OUTPUT_DIR}/rotate.avi
+      - ${OUTPUT_DIR}/translate.avi
+      - ${OUTPUT_DIR}/scale_opencv.avi
+      - ${OUTPUT_DIR}/rotate_opencv.avi
+      - ${OUTPUT_DIR}/translate_opencv.avi
+      - ${OUTPUT_DIR}/sift-demo/frame01.png
+      - ${OUTPUT_DIR}/sift-demo/frame02.png
+      - ${OUTPUT_DIR}/sift-demo/frame03.png
+      - ${OUTPUT_DIR}/sift-demo/frame04.png
+      - ${OUTPUT_DIR}/sift-demo/frame05.png
+      - ${OUTPUT_DIR}/sift-demo/frame06.png
+      - ${OUTPUT_DIR}/sift-demo/frame07.png
+      - ${OUTPUT_DIR}/sift-demo/frame08.png
+      - ${OUTPUT_DIR}/sift-demo/frame09.png
+      - ${OUTPUT_DIR}/sift-demo/frame10.png
+  dependencies:
+    - prepare
+
+
+# Stage to produce the report
+report:
+  image: adnrv/texlive:full
+  stage: report
+  script:
+    - cd report
+    - latexmk -pdf -pdflatex="pdflatex --shell-escape %O %S" report
+    # move the file to the root folder
+    - mv report.pdf ../
+    - rm -f *.out *.aux *.alg *.acr *.dvi *.gls *.log *.bbl *.blg *.ntn *.not *.lof *.lot *.toc *.loa *.lsg *.nlo *.nls *.ilg *.ind *.ist *.glg *.glo *.xdy *.acn *.idx *.loq *~
+  artifacts:
+    paths:
+      - report.pdf

@@ -1,6 +1,6 @@
 # Computer Vision Final Project
 
-Image Memorability
+We reproduced the experiments from the article "What makes an image memorable?" (MIT).
 
 ## Group 4
 
